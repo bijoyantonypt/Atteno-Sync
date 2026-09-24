@@ -1,4 +1,4 @@
-package com.shifttrack.kiosk.scanner
+﻿package com.atteno_sync.kiosk.scanner
 
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -15,7 +15,7 @@ import java.util.concurrent.Executors
  * device-key signing and nonce generation. All scanner work runs on one
  * background thread so the UI never blocks and captures never overlap.
  */
-class ShiftTrackScannerModule(private val reactContext: ReactApplicationContext) :
+class Atteno_SyncScannerModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
 
     private val executor = Executors.newSingleThreadExecutor()
@@ -25,7 +25,7 @@ class ShiftTrackScannerModule(private val reactContext: ReactApplicationContext)
     // Decrypted templates held in memory only while the app runs (~30 x <1 KB).
     @Volatile private var templates: Map<String, ByteArray>? = null
 
-    override fun getName() = "ShiftTrackScanner"
+    override fun getName() = "Atteno_SyncScanner"
 
     private fun enrolled(): Map<String, ByteArray> = templates ?: vault.loadAll().also { templates = it }
 
@@ -132,10 +132,11 @@ class ShiftTrackScannerModule(private val reactContext: ReactApplicationContext)
         MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
     companion object {
-        private const val EVENT_NAME = "ShiftTrackScanner"
+        private const val EVENT_NAME = "Atteno_SyncScanner"
         private const val CAPTURE_TIMEOUT_MS = 10_000L
         private const val ENROLL_SAMPLES = 3
         private const val LIFT_DELAY_MS = 1_200L
         private val RESET_ON = setOf("NO_SCANNER", "CAPTURE_FAILED", "MATCH_FAILED")
     }
 }
+

@@ -1,8 +1,8 @@
-// Bilingual UI strings (English primary, Hindi secondary). Every key has both languages.
+﻿// Bilingual UI strings (English primary, Hindi secondary). Every key has both languages.
 type Entry = { en: string; hi: string };
 
 export const strings = {
-  appName: { en: 'ShiftTrack', hi: 'शिफ्ट ट्रैक' },
+  appName: { en: 'Atteno_Sync', hi: 'शिफ्ट ट्रैक' },
   clockIn: { en: 'Clock In', hi: 'आगमन दर्ज करें' },
   clockOut: { en: 'Clock Out', hi: 'प्रस्थान दर्ज करें' },
   myAttendance: { en: 'My Attendance', hi: 'मेरी हाजिरी' },
@@ -60,3 +60,5 @@ export function formatDate(isoDate: string): string {
   const [y, m, d] = isoDate.split('-');
   return `${d}/${m}/${y}`;
 }
+
+

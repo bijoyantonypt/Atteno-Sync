@@ -1,5 +1,5 @@
-{
-  "name": "shifttrack-admin",
+﻿{
+  "name": "atteno_sync_admin",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -24,3 +24,5 @@
     "vite": "^6.0.0"
   }
 }
+
+

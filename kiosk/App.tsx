@@ -1,4 +1,4 @@
-// ShiftTrack kiosk entry point. Simple state-based navigation (no router dependency).
+﻿// Atteno_Sync kiosk entry point. Simple state-based navigation (no router dependency).
 import NetInfo from '@react-native-community/netinfo';
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
@@ -101,3 +101,5 @@ export default function App() {
     </SafeAreaView>
   );
 }
+
+

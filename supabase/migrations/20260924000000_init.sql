@@ -1,4 +1,4 @@
--- ShiftTrack: initial schema
+﻿-- Atteno_Sync: initial schema
 -- All timestamps are timestamptz (UTC on disk); work_date is the factory-local calendar date.
 
 create extension if not exists pgcrypto;
@@ -193,3 +193,5 @@ create policy attendance_void   on public.attendance_events for update to authen
 
 -- Payroll rows are written only by the generate-payroll function (service role)
 create policy payroll_read on public.payroll for select to authenticated using (public.is_admin());
+
+

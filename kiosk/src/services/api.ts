@@ -1,4 +1,4 @@
-// HTTPS client for ShiftTrack Edge Functions. Every kiosk request is signed with the
+﻿// HTTPS client for Atteno_Sync Edge Functions. Every kiosk request is signed with the
 // device's Keystore key; admin calls carry the admin's Supabase access token.
 import { FUNCTIONS_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config';
 import { scanner } from '../native/scanner';
@@ -164,3 +164,5 @@ export const registerDevice = (token: string, name: string, publicKey: string) =
 
 export const recordEnrollment = (token: string, employeeId: string, fingerprintHash: string | null) =>
   post<{ ok: true }>(`${FUNCTIONS_URL}/enroll-employee`, { employee_id: employeeId, fingerprint_hash: fingerprintHash }, token);
+
+

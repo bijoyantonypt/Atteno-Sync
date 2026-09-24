@@ -1,4 +1,4 @@
-package com.shifttrack.kiosk.scanner
+﻿package com.atteno_sync.kiosk.scanner
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -16,7 +16,7 @@ import java.security.spec.ECGenParameterSpec
  */
 object DeviceKey {
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
-    private const val ALIAS = "shifttrack_device_key"
+    private const val ALIAS = "atteno_sync_device_key"
 
     private val keyStore: KeyStore by lazy { KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) } }
 
@@ -72,3 +72,4 @@ object DeviceKey {
         return out
     }
 }
+

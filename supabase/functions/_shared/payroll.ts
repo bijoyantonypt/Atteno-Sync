@@ -1,4 +1,4 @@
-// ShiftTrack payroll engine (pure functions, unit-tested in payroll.test.ts).
+﻿// Atteno_Sync payroll engine (pure functions, unit-tested in payroll.test.ts).
 //
 // Daily:
 //   worked_minutes   = Σ(out − in over paired punches) − max(0, break_minutes − Σ recorded gaps)
@@ -139,3 +139,5 @@ export function computeMonthlyPayroll(
     daily_breakdown: days,
   };
 }
+
+

@@ -1,4 +1,4 @@
-import type { Session } from '@supabase/supabase-js';
+﻿import type { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { loadReferenceData, Settings, Shift, supabase } from './lib/supabase';
 import Dashboard from './pages/Dashboard';
@@ -47,7 +47,7 @@ export default function App() {
     <div className="min-h-screen">
       <header className="bg-[#12355B] text-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 py-3">
-          <h1 className="mr-6 text-2xl font-bold">ShiftTrack</h1>
+          <h1 className="mr-6 text-2xl font-bold">Atteno_Sync</h1>
           <nav className="flex flex-1 flex-wrap gap-1">
             {TABS.map((t) => (
               <button
@@ -72,3 +72,5 @@ export default function App() {
     </div>
   );
 }
+
+

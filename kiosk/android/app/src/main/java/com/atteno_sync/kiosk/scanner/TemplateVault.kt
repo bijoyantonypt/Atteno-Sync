@@ -1,4 +1,4 @@
-package com.shifttrack.kiosk.scanner
+﻿package com.atteno_sync.kiosk.scanner
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
@@ -68,9 +68,10 @@ class TemplateVault(context: Context) {
 
     companion object {
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
-        private const val KEY_ALIAS = "shifttrack_template_key"
+        private const val KEY_ALIAS = "atteno_sync_template_key"
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
         private const val IV_SIZE = 12
         private val UUID_RE = Regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
     }
 }
+

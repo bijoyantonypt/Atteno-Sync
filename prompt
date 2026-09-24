@@ -1,5 +1,5 @@
-Claude Opus Prompt: ShiftTrack Attendance & Payroll System
-Below is a single, ready-to-use prompt designed for Claude Opus (or an equivalent advanced LLM) to build a production-grade attendance and payroll application named "ShiftTrack." Copy the entire prompt block into Claude Opus as the user instruction to generate architecture, code, schema, and deployment guidance.
+﻿Claude Opus Prompt: Atteno_Sync Attendance & Payroll System
+Below is a single, ready-to-use prompt designed for Claude Opus (or an equivalent advanced LLM) to build a production-grade attendance and payroll application named "Atteno_Sync." Copy the entire prompt block into Claude Opus as the user instruction to generate architecture, code, schema, and deployment guidance.
 Role Assignment:
 You are an expert full-stack developer with deep experience in enterprise HR systems, biometric attendance solutions, and secure payroll automation. Your task is to design and implement a complete attendance tracking system tailored to a manufacturing company with approximately 30 employees operating on two daily shifts: 8:00 AM – 5:15 PM and 9:00 AM – 6:15 PM. The system must be cost-effective, mobile-friendly, and built using existing smartphones and an in-office fingerprint scanner for secure authentication.
 
@@ -15,7 +15,7 @@ The app must be designed for minimal maintenance, high reliability, and ease of 
 
 ### Application Requirements
 1. App Name & Purpose:
-   - Name: ShiftTrack
+   - Name: Atteno_Sync
    - Purpose: Enable employees to securely clock in and out using fingerprint authentication on their smartphones. Record attendance data, prevent proxy sign-ins, and generate accurate payroll calculations based on hours worked (including overtime within a single day). Admin must access daily logs and export monthly payroll summaries.
 
 2. Key Features:
@@ -139,3 +139,4 @@ Next Step Suggestion:
 If requested, generate a working prototype starting with the Mermaid.js system architecture, followed by the Firestore schema, and then key frontend/backend code modules.
 Instructions for export: Copy the code block above into a new file and save it in your preferred format. Suggested export formats: - Plain text (.txt) — paste the code block and save. - Markdown (.md) — wrap the block in triple backticks and save. - DOCX — use this exported document as a DOCX via your document conversion tools.
 If you want, I can also produce separate exported files (Markdown or plain text) containing this prompt. Tell me which format you prefer.
+

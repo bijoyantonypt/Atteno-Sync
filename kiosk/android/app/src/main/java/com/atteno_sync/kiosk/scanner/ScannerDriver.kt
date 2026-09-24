@@ -1,4 +1,4 @@
-package com.shifttrack.kiosk.scanner
+﻿package com.atteno_sync.kiosk.scanner
 
 class ScannerException(val code: String, message: String) : Exception(message)
 
@@ -22,3 +22,4 @@ interface ScannerDriver {
 
     fun close()
 }
+

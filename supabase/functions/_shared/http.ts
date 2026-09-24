@@ -1,4 +1,4 @@
-// HTTP plumbing shared by all ShiftTrack Edge Functions.
+﻿// HTTP plumbing shared by all Atteno_Sync Edge Functions.
 
 export class HttpError extends Error {
   constructor(public status: number, message: string) {
@@ -45,3 +45,5 @@ export function requireUuid(v: unknown, field: string): string {
   if (!isUuid(v)) throw new HttpError(400, `${field} must be a UUID`);
   return v;
 }
+
+

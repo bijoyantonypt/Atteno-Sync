@@ -1,6 +1,6 @@
-# Atteno-Sync Installation and Deployment Guide
+﻿# Atteno_Sync Installation and Deployment Guide
 
-This guide explains how to install, configure, run, and deploy the Atteno-Sync project.
+This guide explains how to install, configure, run, and deploy the Atteno_Sync project.
 
 ## 1. Prerequisites
 
@@ -135,8 +135,8 @@ The kiosk app is a React Native app intended for Android devices with USB OTG su
 Generate a React Native project:
 
 ```powershell
-npx @react-native-community/cli@latest init ShiftTrackKiosk
-cd ShiftTrackKiosk
+npx @react-native-community/cli@latest init Atteno_SyncKiosk
+cd Atteno_SyncKiosk
 npm install @react-native-async-storage/async-storage @react-native-community/netinfo
 ```
 
@@ -144,7 +144,7 @@ Copy the relevant files from this repo:
 
 - `kiosk/App.tsx`
 - `kiosk/src/`
-- `kiosk/android/app/src/main/java/com/shifttrack/...`
+- `kiosk/android/app/src/main/java/com/atteno_sync/...`
 - `kiosk/android/app/src/main/res/xml/...`
 
 Then update the kiosk config file `kiosk/src/config.ts`:
@@ -217,4 +217,6 @@ Use this recommended sequence:
 8. Set admin user access
 9. Test attendance and payroll workflows
 
-This completes the installation and deployment process for Atteno-Sync.
+This completes the installation and deployment process for Atteno_Sync.
+
+

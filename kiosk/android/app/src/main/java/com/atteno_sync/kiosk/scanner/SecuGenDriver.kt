@@ -1,4 +1,4 @@
-package com.shifttrack.kiosk.scanner
+﻿package com.atteno_sync.kiosk.scanner
 
 import SecuGen.FDxSDKPro.JSGFPLib
 import SecuGen.FDxSDKPro.SGDeviceInfoParam
@@ -113,7 +113,8 @@ class SecuGenDriver(private val context: Context) : ScannerDriver {
     }
 
     companion object {
-        const val ACTION_USB_PERMISSION = "com.shifttrack.kiosk.USB_PERMISSION"
+        const val ACTION_USB_PERMISSION = "com.atteno_sync.kiosk.USB_PERMISSION"
         private const val MIN_IMAGE_QUALITY = 50
     }
 }
+

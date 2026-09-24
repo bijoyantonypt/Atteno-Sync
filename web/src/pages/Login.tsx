@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+﻿import { FormEvent, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 /** Email + password sign-in, followed by a TOTP step for admins who enabled 2FA. */
@@ -44,7 +44,7 @@ export default function Login({ notAdmin }: { notAdmin: boolean }) {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow">
-        <h1 className="mb-6 text-3xl font-bold text-[#12355B]">ShiftTrack Admin</h1>
+        <h1 className="mb-6 text-3xl font-bold text-[#12355B]">Atteno_Sync Admin</h1>
         {needsCode ? (
           <form onSubmit={verify} className="space-y-4">
             <label className="block text-lg">Enter the 6-digit code from your authenticator app</label>
@@ -70,3 +70,5 @@ export default function Login({ notAdmin }: { notAdmin: boolean }) {
     </div>
   );
 }
+
+

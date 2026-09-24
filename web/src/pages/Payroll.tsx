@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import { downloadCsv, downloadPayslip } from '../lib/export';
 import { AttendanceEvent, formatTime, money, PayrollRow, Settings, supabase, unwrap } from '../lib/supabase';
 
-const COMPANY_NAME = 'ShiftTrack Payroll';
+const COMPANY_NAME = 'Atteno_Sync Payroll';
 
 function previousMonth(): string {
   const d = new Date();
@@ -137,3 +137,5 @@ export default function Payroll({ settings }: { settings: Settings }) {
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-project_id = "shifttrack"
+﻿project_id = "atteno_sync"
 
 # Kiosk endpoints authenticate with an ECDSA device signature and admin endpoints
 # validate the Supabase session inside the function, so gateway JWT checks are off.
@@ -19,3 +19,5 @@ verify_jwt = false
 
 [functions.generate-payroll]
 verify_jwt = false
+
+

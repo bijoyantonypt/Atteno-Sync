@@ -1,4 +1,4 @@
-# ShiftTrack (Atteno-Sync)
+﻿# Atteno_Sync (Atteno_Sync)
 
 Fingerprint attendance and payroll for a ~30-person factory running two shifts
 (**A: 08:00–17:15**, **B: 09:00–18:15**). Employees clock in and out on an Android kiosk
@@ -14,7 +14,7 @@ flowchart LR
     E([Employee]) -->|taps Clock In / Clock Out| K
     subgraph Factory["Factory floor (in-office only)"]
         S[USB-OTG fingerprint scanner<br/>SecuGen / Mantra] -->|ISO 19794-2 template| K
-        K[ShiftTrack Kiosk<br/>React Native on Android]
+        K[Atteno_Sync Kiosk<br/>React Native on Android]
         K --> V[(TemplateVault<br/>AES-256-GCM, Android Keystore)]
         K --> Q[(Offline queue<br/>AsyncStorage)]
     end
@@ -71,9 +71,9 @@ supabase/
 kiosk/                                # React Native sources to drop into a generated RN project
   App.tsx
   src/ config.ts i18n.ts native/scanner.ts services/{api,clock,queue,store}.ts screens/*.tsx components/ui.tsx
-  android/app/src/main/java/com/shifttrack/kiosk/scanner/
+  android/app/src/main/java/com/atteno_sync/kiosk/scanner/
     ScannerDriver.kt SecuGenDriver.kt TemplateVault.kt DeviceKey.kt
-    ShiftTrackScannerModule.kt ShiftTrackScannerPackage.kt
+    Atteno_SyncScannerModule.kt Atteno_SyncScannerPackage.kt
   android/app/src/main/res/xml/usb_device_filter.xml
 web/                                  # Admin dashboard (Vite + React + Tailwind)
   src/ App.tsx lib/{supabase,export}.ts pages/{Login,Dashboard,Employees,Payroll,Security}.tsx
@@ -169,7 +169,7 @@ Full DDL: [supabase/migrations/20260924000000_init.sql](supabase/migrations/2026
 ## 3. Biometric data handling and anti-proxy controls
 
 Fingerprint matching is fuzzy: two scans of the same finger never produce identical bytes, so a
-cryptographic hash alone cannot be matched. ShiftTrack therefore splits the data:
+cryptographic hash alone cannot be matched. Atteno_Sync therefore splits the data:
 
 | Data | Where | Form |
 |---|---|---|
@@ -226,7 +226,7 @@ base = 22 × 8 × 100 = **₹17,600**; OT = 10 h × 100 × 1.5 = **₹1,500**; t
 ## 5. Admin dashboard
 
 ```
-┌ ShiftTrack ─ [Today] [Employees] [Payroll] [Security] ─────────────── [Sign out] ┐
+┌ Atteno_Sync ─ [Today] [Employees] [Payroll] [Security] ─────────────── [Sign out] ┐
 │ Attendance  [ 24/09/2026 ▾ ]                                                     │
 │ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────┐                            │
 │ │Present 27│ │Late    3 │ │Absent  3 │ │Left early 1│   ← green / orange / red   │
@@ -298,10 +298,10 @@ Deploy on Vercel: *New Project → import repo → Root Directory `web`* → add
 1. Generate a React Native project and copy the sources:
 
    ```powershell
-   npx @react-native-community/cli@latest init ShiftTrackKiosk
-   cd ShiftTrackKiosk
+   npx @react-native-community/cli@latest init Atteno_SyncKiosk
+   cd Atteno_SyncKiosk
    npm install @react-native-async-storage/async-storage @react-native-community/netinfo
-   # copy from this repo: kiosk/App.tsx, kiosk/src/, and kiosk/android/app/src/main/{java/com/shifttrack, res/xml}
+   # copy from this repo: kiosk/App.tsx, kiosk/src/, and kiosk/android/app/src/main/{java/com/atteno_sync, res/xml}
    ```
 
 2. Fill in `src/config.ts` (Supabase URL + anon/publishable key).
@@ -316,7 +316,7 @@ Deploy on Vercel: *New Project → import repo → Root Directory `web`* → add
    ```
 
    For a different scanner, implement `ScannerDriver` with that vendor's SDK and change one line in
-   `ShiftTrackScannerModule.kt`.
+   `Atteno_SyncScannerModule.kt`.
 
 4. **AndroidManifest.xml** (inside `<manifest>` and the main `<activity>`):
 
@@ -333,25 +333,25 @@ Deploy on Vercel: *New Project → import repo → Root Directory `web`* → add
 5. **Register the native module** in `MainApplication.kt`:
 
    ```kotlin
-   import com.shifttrack.kiosk.scanner.ShiftTrackScannerPackage
+   import com.atteno_sync.kiosk.scanner.Atteno_SyncScannerPackage
    // ...
    override fun getPackages(): List<ReactPackage> =
-       PackageList(this).packages.apply { add(ShiftTrackScannerPackage()) }
+       PackageList(this).packages.apply { add(Atteno_SyncScannerPackage()) }
    ```
 
 6. Build and install (sideload, no Play Store):
 
    ```powershell
-   keytool -genkeypair -v -keystore shifttrack.keystore -alias shifttrack -keyalg RSA -keysize 2048 -validity 10000
+   keytool -genkeypair -v -keystore atteno_sync.keystore -alias atteno_sync -keyalg RSA -keysize 2048 -validity 10000
    # configure signingConfigs.release in android/app/build.gradle (see React Native "Publishing to Google Play Store" docs)
    cd android; .\gradlew assembleRelease
    adb install app\build\outputs\apk\release\app-release.apk
    ```
 
 7. **Prepare the kiosk device**: set time zone to the factory's and enable automatic time; connect Wi-Fi;
-   Developer options → *Stay awake* while charging; Settings → Security → **App pinning** and pin ShiftTrack.
-8. Plug in the scanner, tick **"Always open ShiftTrack for this device"**.
-9. Long-press the **ShiftTrack** title for 3 s → sign in as admin → **Pair this kiosk** → **Enrol** each
+   Developer options → *Stay awake* while charging; Settings → Security → **App pinning** and pin Atteno_Sync.
+8. Plug in the scanner, tick **"Always open Atteno_Sync for this device"**.
+9. Long-press the **Atteno_Sync** title for 3 s → sign in as admin → **Pair this kiosk** → **Enrol** each
    employee (same finger, 3 placements). Enrolment status appears on the web Employees page.
 
 ### 6.5 Operations
@@ -377,3 +377,5 @@ Deploy on Vercel: *New Project → import repo → Root Directory `web`* → add
 ## License
 
 GPL-3.0 — see [LICENSE](LICENSE).
+
+

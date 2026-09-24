@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 /** Optional TOTP 2FA enrolment (Google Authenticator, Aegis, etc.). */
@@ -17,7 +17,7 @@ export default function Security() {
   }, []);
 
   const start = async () => {
-    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: `ShiftTrack ${Date.now()}` });
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: `Atteno_Sync ${Date.now()}` });
     if (error) return setMessage(error.message);
     setEnrolment({ factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret });
   };
@@ -56,3 +56,5 @@ export default function Security() {
     </section>
   );
 }
+
+
