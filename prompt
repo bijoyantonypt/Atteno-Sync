@@ -1,0 +1,141 @@
+Claude Opus Prompt: ShiftTrack Attendance & Payroll System
+Below is a single, ready-to-use prompt designed for Claude Opus (or an equivalent advanced LLM) to build a production-grade attendance and payroll application named "ShiftTrack." Copy the entire prompt block into Claude Opus as the user instruction to generate architecture, code, schema, and deployment guidance.
+Role Assignment:
+You are an expert full-stack developer with deep experience in enterprise HR systems, biometric attendance solutions, and secure payroll automation. Your task is to design and implement a complete attendance tracking system tailored to a manufacturing company with approximately 30 employees operating on two daily shifts: 8:00 AM – 5:15 PM and 9:00 AM – 6:15 PM. The system must be cost-effective, mobile-friendly, and built using existing smartphones and an in-office fingerprint scanner for secure authentication.
+
+You will respond only with a production-grade solution that includes:
+- A full application architecture
+- Frontend and backend code (structured and modular)
+- Database schema (with tables and relationships)
+- Authentication logic (especially for fingerprint-based clock-in/out)
+- Payroll calculation rules based on daily overtime and total monthly hours
+- Deployment guidance
+
+The app must be designed for minimal maintenance, high reliability, and ease of use for non-technical employees.
+
+### Application Requirements
+1. App Name & Purpose:
+   - Name: ShiftTrack
+   - Purpose: Enable employees to securely clock in and out using fingerprint authentication on their smartphones. Record attendance data, prevent proxy sign-ins, and generate accurate payroll calculations based on hours worked (including overtime within a single day). Admin must access daily logs and export monthly payroll summaries.
+
+2. Key Features:
+   - Employer-managed employee enrollment with fingerprint templates
+   - Daily clock-in/out tracking via biometric authentication
+   - Automatic segmentation of shifts (to support two shift patterns)
+   - Daily overtime detection and logging
+   - Monthly payroll calculation:
+     - Base pay = (total days worked in month) × (shift duration in hours)
+     - Overtime pay = hours above shift limit within a single day × 1.5× rate
+     - Final payout = base pay + overtime pay
+   - Admin dashboard for viewing attendance logs and exporting CSV/PDF payroll reports
+   - Employee self-service portal to view attendance and pay stubs
+   - Offline-capable operation (optional but preferred)
+
+3. Technology Stack:
+   - Frontend: React Native (for cross-platform mobile) or a Progressive Web App (PWA) using React + Tailwind CSS
+   - Backend: Firebase (Auth + Firestore + Cloud Functions) OR Supabase + Node.js Express
+   - Database: Firestore (NoSQL) or PostgreSQL (SQL) with structured collections/tables for:
+       - Employees (ID, name, shift, fingerprint hash, status)
+       - Attendance (employee ID, timestamp, shift type [in/out], date, was_late?)
+       - Payroll (employee ID, month, year, base_hours, overtime_hours, total_pay)
+   - Biometric Authentication: Use native Android Biometric API (FingerprintManager / BiometricPrompt) or integrate with a local fingerprint scanner via Android’s USB Host or Bluetooth SDK (e.g., SecuGen, Mantra)
+   - Backend Logic: Cloud Functions (Firebase/Supabase Edge) to enforce authentication checks, validate scans, timestamp entries, and calculate payroll
+   - Authentication Method: Fingerprint scan → immediate log of timestamp → no manual input required → requires successful match
+   - Security: End-to-end encryption for sensitive data; no raw fingerprint images stored; hashes only; TLS 1.3 for data in transit
+   - Hosting: Firebase Hosting (free tier) or Vercel (if PWA)
+
+4. User Interface:
+   - Employee View:
+     - Simple home screen with two buttons: "Clock In" and "Clock Out"
+     - Minimal design — one tap to scan fingerprint
+     - After scan, show confirmation: “Clocked In at 8:02 AM”
+     - Access to “View Attendance History” (list of past days)
+   - Admin/Manager View:
+     - Dashboard showing today’s attendance summary (who clocked in, late arrivals, early departures)
+     - “Generate Payroll” button that exports a report by month
+     - Feature to view detailed logs, edit employee info, or reset attendance data
+   - Design Principles:
+     - High contrast, accessible fonts
+     - No technical jargon
+     - Color-coded status (green = on time, orange = late, red = absent)
+
+5. Data Requirements:
+   - Store:
+     - Employee names, IDs, assigned shifts, fingerprint hash, status (active/inactive)
+     - Daily clock-in and clock-out timestamps with date and shift type
+     - Overtime threshold per shift (default: 8 hours)
+     - Payroll rules (base hourly rate, overtime multiplier)
+     - Exportable records: CSV for attendance, PDF for payroll slips
+   - All data must be indexed for fast lookup by date and employee
+
+6. Performance & Security Needs:
+   - Authentication must prevent spoofing: once per scan, only one valid match; no anonymous or replay attacks
+   - Data must be secure in transit (HTTPS) and at rest (encrypted Firestore)
+   - App must handle network loss gracefully (cache latest clock-in/out locally; sync when back online)
+   - No user can clock in/out for another employee (anti-proxy)
+   - Admin must have password-protected access with 2FA optional
+
+7. Target Platform:
+   - Mobile-first (employees use Android smartphones via fingerprint scanner at factory)
+   - Fully responsive PWA or React Native app (no app store distribution required)
+
+8. Additional Preferences:
+   - Use only open-source, free-tier tools
+   - Minimize custom backend maintenance
+   - Prioritize simplicity and reliability over advanced AI or analytics
+   - Provide clear documentation in comments and README
+   - Support UTF-8 and multilingual understanding (English primary, Hindi optional labels)
+
+### Deliverables
+Output should include the following in a structured, ready-to-execute format:
+1. System Architecture Diagram (using Mermaid.js) showing flow:
+   - Employee → Mobile App (PWA/React Native) → Fingerprint Scan → Cloud Backend → Log Stored → Payroll Calculated
+2. Firestore/DB Schema (collection names, fields, relationships)
+3. Frontend Code Snippets (React Native or PWA HTML/JS) for:
+   - Biometric authentication flow
+   - Clock-in/out UI
+   - Attendance history display
+4. Backend Logic (Cloud Functions or Node.js route) for:
+   - Validating fingerprint match
+   - Logging timestamps
+   - Calculating daily overtime and monthly payroll
+5. Admin Dashboard Concept (screenshots or mockup description)
+6. Step-by-Step Deployment Guide (how to set up Firebase/Firestore, connect scanner, deploy app)
+7. Payroll Calculation Formula in code or pseudocode
+
+### Optional Enhancements (Phase 2)
+- Push reminders at 8:30 AM to latecomers
+- Export/email monthly payslips
+- Support for multiple departments or skill-based wages
+- Integration with payroll providers (e.g., Razorpay)
+
+### Do Not Do:
+- Invent fake credentials or unverifiable claims
+- Use proprietary tech without open-source or free-tier alternatives
+- Assume high-end hardware (stick to basic Android smartphones)
+- Add unnecessary complexity (e.g., role-based permissions if not requested)
+- Introduce business logic not tied to overtime or daily attendance tracking
+- Accept non-physical devices — this system must rely on fingerprint scanner in-office
+- Suggest tools requiring paid licenses or enterprise contracts
+
+### Iteration Readiness:
+If user provides feedback (e.g., “Make it offline-first”), adapt the solution without seeking clarification before revising code.
+If user says “Write the full app,” generate only the core modules first (e.g., auth and clock-in logic) — do not output an entire 1,000-line app unless explicitly asked.
+
+### Language & Tone:
+- Use clear, technical, and professional English
+- Avoid marketing fluff or hypothetical claims
+- Be precise in naming variables, methods, and folders
+- Include comments in code for readability
+- Structure output using headings and code blocks
+
+### Final Output Must:
+- Begin with a Mermaid.js system architecture diagram inside a single fenced block
+- Follow with code, schema, and guide in logical sections
+- Avoid any disclaimers, apologies, or meta-commentary
+- Deliver only final structured content
+
+Next Step Suggestion:
+If requested, generate a working prototype starting with the Mermaid.js system architecture, followed by the Firestore schema, and then key frontend/backend code modules.
+Instructions for export: Copy the code block above into a new file and save it in your preferred format. Suggested export formats: - Plain text (.txt) — paste the code block and save. - Markdown (.md) — wrap the block in triple backticks and save. - DOCX — use this exported document as a DOCX via your document conversion tools.
+If you want, I can also produce separate exported files (Markdown or plain text) containing this prompt. Tell me which format you prefer.
