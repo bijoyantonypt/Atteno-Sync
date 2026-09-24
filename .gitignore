@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+supabase/.temp/
+supabase/.branches/
+kiosk/android/app/libs/*.jar
+kiosk/android/app/src/main/jniLibs/

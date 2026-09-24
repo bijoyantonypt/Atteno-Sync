@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Auto-grants USB access when the scanner is plugged in. 4450 = 0x1162 (SecuGen). -->
+<!-- For Mantra or another vendor, add a <usb-device vendor-id="..."/> entry with its USB vendor ID. -->
+<resources>
+    <usb-device vendor-id="4450" />
+</resources>

@@ -1,0 +1,21 @@
+project_id = "shifttrack"
+
+# Kiosk endpoints authenticate with an ECDSA device signature and admin endpoints
+# validate the Supabase session inside the function, so gateway JWT checks are off.
+[functions.clock-event]
+verify_jwt = false
+
+[functions.kiosk-sync]
+verify_jwt = false
+
+[functions.employee-history]
+verify_jwt = false
+
+[functions.register-device]
+verify_jwt = false
+
+[functions.enroll-employee]
+verify_jwt = false
+
+[functions.generate-payroll]
+verify_jwt = false
