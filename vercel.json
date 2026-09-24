@@ -1,0 +1,5 @@
+{
+  "installCommand": "cd web && npm install --include=dev",
+  "buildCommand": "cd web && npm run build",
+  "outputDirectory": "web/dist"
+}

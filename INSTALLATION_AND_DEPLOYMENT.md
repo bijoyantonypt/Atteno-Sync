@@ -79,6 +79,14 @@ http://localhost:5173
    - `VITE_SUPABASE_ANON_KEY`
 6. Deploy the app
 
+In the Vercel project settings, use these build settings:
+
+- **Install Command:** `npm install --include=dev`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+
+Do not use `vite build` as the Build Command. It bypasses the package script and can fail when Vercel has not installed the local build dependencies.
+
 ### Change the Vercel admin URL
 
 The old URL `https://shifttrack-admin-nine.vercel.app/` is controlled by the Vercel project, not by the source code. To change it:
