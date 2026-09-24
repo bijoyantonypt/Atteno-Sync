@@ -266,7 +266,7 @@ npx supabase login
 npx supabase link --project-ref <your-project-ref>
 npx supabase db push                      # applies supabase/migrations
 npx supabase functions deploy             # deploys all functions using supabase/config.toml
-npx supabase secrets set ALLOWED_ORIGIN=https://atteno-sync-admin.vercel.app
+npx supabase secrets set ALLOWED_ORIGIN=https://attenosync-admin-nine.vercel.app
 ```
 
 3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up".
@@ -291,7 +291,7 @@ npm run dev                          # http://localhost:5173
 
 Deploy on Vercel: *New Project → import repo → Root Directory `web`* → add `VITE_SUPABASE_URL` and
 `VITE_SUPABASE_ANON_KEY` → Deploy. The deployed admin URL will typically be
-`https://atteno-sync-admin.vercel.app`. Add that URL to **Authentication → URL Configuration** and to
+`https://attenosync-admin-nine.vercel.app/`. Add that URL to **Authentication → URL Configuration** and to
 `ALLOWED_ORIGIN`. Sign in, open **Security**, and enable 2FA (recommended). Add employees under **Employees**.
 
 ### 6.4 Kiosk app (Android)
