@@ -377,7 +377,3 @@ Deploy on Vercel: *New Project → import repo → Root Directory `web`* → add
 ## License
 
 GPL-3.0 — see [LICENSE](LICENSE).
-
-##Supabase Password
-
-fsj2b3Dbku3MI1JZ
