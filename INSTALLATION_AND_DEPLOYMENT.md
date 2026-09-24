@@ -79,10 +79,33 @@ http://localhost:5173
    - `VITE_SUPABASE_ANON_KEY`
 6. Deploy the app
 
-After deployment, add the Vercel URL to:
+### Change the Vercel admin URL
+
+The old URL `https://shifttrack-admin-nine.vercel.app/` is controlled by the Vercel project, not by the source code. To change it:
+
+1. Open the project in Vercel.
+2. Go to **Settings → General**.
+3. Change **Project Name** to `atteno-sync-admin`.
+4. Save the change and redeploy the project.
+
+The new default URL will be:
+
+```text
+https://atteno-sync-admin.vercel.app
+```
+
+The name must be available on Vercel. If Vercel rejects it, choose another available project name or connect a custom domain.
+
+After the URL changes, replace the old URL in:
 
 - Supabase Authentication → URL Configuration
 - Supabase secret `ALLOWED_ORIGIN`
+
+From the repo root, update the Supabase origin with:
+
+```powershell
+npx supabase secrets set ALLOWED_ORIGIN=https://atteno-sync-admin.vercel.app
+```
 
 ## 7. Set Up Supabase Backend
 
@@ -93,7 +116,7 @@ npx supabase login
 npx supabase link --project-ref <your-project-ref>
 npx supabase db push
 npx supabase functions deploy
-npx supabase secrets set ALLOWED_ORIGIN=https://<your-admin-site>.vercel.app
+npx supabase secrets set ALLOWED_ORIGIN=https://atteno-sync-admin.vercel.app
 ```
 
 If the CLI is not available, install Node.js first and ensure `npx` is working in your terminal.
