@@ -1,42 +1,23 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './auth';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+/**
+ * Requests a short-lived CSRF token from the backend Edge Function and
+ * stores it in memory (never localStorage — mitigates XSS token theft).
+ */
+let memoryToken: string | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export async function getCsrfToken(): Promise<string> {
+  if (memoryToken) return memoryToken;
 
-let csrfToken = '';
+  const { data, error } = await supabase.functions.invoke('issue-csrf-token', {
+    method: 'POST',
+  });
 
-export async function getCsrfToken() {
-  if (!csrfToken) {
-    const { data, error } = await supabase
-      .from('csrf_tokens')
-      .insert({})
-      .select('token')
-      .single();
-
-    if (error) throw error;
-    csrfToken = data.token;
-  }
-  return csrfToken;
+  if (error || !data?.token) throw new Error('Failed to obtain CSRF token');
+  memoryToken = data.token as string;
+  return memoryToken;
 }
 
-export async function verifyCsrfToken(token: string) {
-  const { data, error } = await supabase
-    .from('csrf_tokens')
-    .select('*')
-    .eq('token', token)
-    .single();
-
-  if (error || !data) {
-    throw new Error('Invalid CSRF token');
-  }
-
-  // Delete the token after use to prevent replay attacks
-  await supabase
-    .from('csrf_tokens')
-    .delete()
-    .eq('token', token);
-
-  return true;
+export function clearCsrfToken(): void {
+  memoryToken = null;
 }

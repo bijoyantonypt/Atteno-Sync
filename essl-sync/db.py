@@ -1,96 +1,157 @@
 """
 essl-sync/db.py
 All Supabase database operations for the eSSL sync service.
-Uses the REST API (via requests) with the service-role key — no Deno/JS needed.
+
+Key fixes vs. earlier drafts:
+  * Adds the missing get_db_connection() helper.
+  * Uses ?on_conflict=nonce so duplicate punches are silently skipped (no 409 crash).
+  * Accurate insert/skip counters.
+  * Negative-cache entries expire so newly added employees can be matched.
 """
 
 import logging
-import os
-from datetime import datetime, timezone
+import time
+from typing import Any
 
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
+from config import (
+    SUPABASE_URL,
+    SUPABASE_SERVICE_KEY,
+    LATE_GRACE_MINUTES,
+    FACTORY_TIMEZONE,
+)
 
 log = logging.getLogger(__name__)
 
-SUPABASE_URL      = os.environ["SUPABASE_URL"].rstrip("/")
-SERVICE_ROLE_KEY  = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
-HEADERS = {
-    "apikey":        SERVICE_ROLE_KEY,
-    "Authorization": f"Bearer {SERVICE_ROLE_KEY}",
-    "Content-Type":  "application/json",
-    "Prefer":        "resolution=ignore-duplicates,return=minimal",
+_HEADERS = {
+    "apikey": SUPABASE_SERVICE_KEY,
+    "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "resolution=ignore-duplicates,return=representation",
 }
 
-# ── In-memory cache: device_user_id (str) → employee UUID ───────────────────
-_employee_cache: dict[str, str | None] = {}
+# ── Negative-cache: device_user_id → (employee_uuid | None, timestamp) ───────
+_employee_cache: dict[str, tuple[str | None, float]] = {}
+_CACHE_TTL = 300  # seconds — retry unmatched employees every 5 minutes
 
-# ── Last sync timestamp stored in Supabase settings notes field ─────────────
-_SYNC_KEY = "essl_last_sync"
+# ── Cached shift / settings data ─────────────────────────────────────────────
+_shifts_cache: list[dict] | None = None
+_grace_cache: int | None = None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Low-level REST helper
+# ══════════════════════════════════════════════════════════════════════════════
+
+def get_db_connection() -> requests.Session:
+    """Return a reusable HTTP session pre-configured for Supabase."""
+    session = requests.Session()
+    session.headers.update(_HEADERS)
+    return session
 
 
 def _rest(method: str, path: str, **kwargs) -> requests.Response:
+    session = get_db_connection()
     url = f"{SUPABASE_URL}/rest/v1/{path}"
-    resp = requests.request(method, url, headers=HEADERS, timeout=15, **kwargs)
+    resp = session.request(method, url, timeout=20, **kwargs)
     resp.raise_for_status()
     return resp
 
 
-def _resolve_employee_id(device_user_id: str, name_hint: str) -> str | None:
-    """
-    Map eSSL user_id → employees.id (UUID).
-    Looks up employees.employee_code == device_user_id first,
-    then falls back to full_name match using name_hint.
-    Returns None if not found (event will be skipped).
-    """
-    if device_user_id in _employee_cache:
-        return _employee_cache[device_user_id]
+# ══════════════════════════════════════════════════════════════════════════════
+#  Reference data (shifts + settings), cached in memory
+# ══════════════════════════════════════════════════════════════════════════════
 
-    # Primary: employee_code matches the device user ID
-    resp = _rest("GET", f"employees?employee_code=eq.{device_user_id}&select=id&limit=1")
+def get_shifts() -> list[dict]:
+    """Fetch shifts from Supabase and cache them in memory."""
+    global _shifts_cache
+    if _shifts_cache is not None:
+        return _shifts_cache
+
+    resp = _rest("GET", "shifts?select=code,start_minutes,end_minutes,break_minutes")
+    _shifts_cache = resp.json()
+    log.info("Loaded %d shifts from Supabase.", len(_shifts_cache))
+    return _shifts_cache
+
+
+def get_late_grace_minutes() -> int:
+    """Read late_grace_minutes from the settings table (fallback to config)."""
+    global _grace_cache
+    if _grace_cache is not None:
+        return _grace_cache
+    try:
+        resp = _rest("GET", "settings?select=late_grace_minutes&limit=1")
+        rows = resp.json()
+        _grace_cache = rows[0]["late_grace_minutes"] if rows else LATE_GRACE_MINUTES
+    except Exception as exc:
+        log.warning("Could not read settings table (%s); using config default.", exc)
+        _grace_cache = LATE_GRACE_MINUTES
+    return _grace_cache
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Employee resolution
+# ══════════════════════════════════════════════════════════════════════════════
+
+def resolve_employee_id(device_user_id: str, name_hint: str = "") -> str | None:
+    """
+    Map an eSSL device user_id → employees.id (UUID).
+    1. Match employees.employee_code == device_user_id
+    2. Fall back to full_name ilike match
+    3. Cache result for _CACHE_TTL seconds (misses expire so new hires get picked up)
+    """
+    now = time.time()
+    cached = _employee_cache.get(device_user_id)
+    if cached and (now - cached[1]) < _CACHE_TTL:
+        return cached[0]
+
+    # 1. Match by employee_code
+    resp = _rest(
+        "GET",
+        f"employees?employee_code=eq.{device_user_id}&select=id&limit=1",
+    )
     rows = resp.json()
     if rows:
         emp_id = rows[0]["id"]
-        _employee_cache[device_user_id] = emp_id
+        _employee_cache[device_user_id] = (emp_id, now)
         return emp_id
 
-    # Fallback: match by full_name (case-insensitive)
+    # 2. Fall back to name match (PostgREST uses * as a wildcard in ilike)
     if name_hint:
+        safe_name = name_hint.replace("%", "").replace("*", "")
         resp = _rest(
             "GET",
-            f"employees?full_name=ilike.{requests.utils.quote(name_hint)}&select=id&limit=1",
+            f"employees?full_name=ilike.*{safe_name}*&select=id&limit=1",
         )
         rows = resp.json()
         if rows:
             emp_id = rows[0]["id"]
-            _employee_cache[device_user_id] = emp_id
-            log.info(
-                "Matched device user '%s' ('%s') by name to employee %s",
-                device_user_id, name_hint, emp_id,
-            )
+            _employee_cache[device_user_id] = (emp_id, now)
+            log.info("Matched device user '%s' to employee %s by name.", device_user_id, emp_id)
             return emp_id
 
-    log.warning(
-        "No employee found for device user_id='%s' name='%s' — skipping.",
-        device_user_id, name_hint,
-    )
-    _employee_cache[device_user_id] = None
+    log.warning("No employee found for device user_id='%s' — skipping.", device_user_id)
+    _employee_cache[device_user_id] = (None, now)   # negative-cache WITH TTL
     return None
 
 
-def upsert_events(events: list[dict]) -> tuple[int, int]:
+# ══════════════════════════════════════════════════════════════════════════════
+#  Attendance-event upsert
+# ══════════════════════════════════════════════════════════════════════════════
+
+def upsert_events(events: list[dict]) -> dict:
     """
-    Resolves employee UUIDs and bulk-upserts attendance_events.
-    Returns (inserted_count, skipped_count).
+    Upsert a list of attendance events into Supabase.
+    Duplicates (by nonce) are silently skipped thanks to ?on_conflict=nonce.
+    Returns a dict with attempted / inserted / skipped counters.
     """
-    rows      = []
-    skipped   = 0
+    rows: list[dict] = []
+    skipped = 0
 
     for ev in events:
-        emp_id = _resolve_employee_id(
-            ev["employee_device_user_id"],
+        emp_id = resolve_employee_id(
+            ev.get("employee_device_user_id", ""),
             ev.get("employee_name_hint", ""),
         )
         if not emp_id:
@@ -98,48 +159,40 @@ def upsert_events(events: list[dict]) -> tuple[int, int]:
             continue
 
         rows.append({
-            "employee_id": emp_id,
-            "event_type":  ev["event_type"],
-            "captured_at": ev["captured_at"],
-            "work_date":   ev["work_date"],
-            "shift_code":  ev["shift_code"],
-            "was_late":    ev["was_late"],
-            "was_early":   ev["was_early"],
-            "device_id":   ev["device_id"],
-            "nonce":       ev["nonce"],
-            "match_score": ev["match_score"],
-            "source":      ev["source"],
-            "synced_offline": ev["synced_offline"],
+            "employee_id":    emp_id,
+            "event_type":     ev["event_type"],
+            "captured_at":    ev["captured_at"],
+            "work_date":      ev["work_date"],
+            "shift_code":     ev["shift_code"],
+            "was_late":       ev["was_late"],
+            "was_early":      ev["was_early"],
+            "device_id":      ev["device_id"],
+            "nonce":          ev["nonce"],
+            "match_score":    ev.get("match_score"),
+            "source":         ev["source"],
+            "synced_offline": ev.get("synced_offline", False),
         })
 
     if not rows:
-        return 0, skipped
+        return {"attempted": len(events), "inserted": 0, "skipped": skipped}
 
-    # Upsert in batches of 200 (Supabase REST safe limit)
     BATCH = 200
     inserted = 0
     for i in range(0, len(rows), BATCH):
-        batch = rows[i : i + BATCH]
-        resp  = _rest("POST", "attendance_events", json=batch)
-        # With "Prefer: return=minimal" and ignore-duplicates, 201 = all inserted, 200 = some dupes ignored
-        inserted += len(batch)   # approximate; dupes silently ignored by DB UNIQUE constraint
+        batch = rows[i:i + BATCH]
+        resp = _rest(
+            "POST",
+            "attendance_events?on_conflict=nonce",
+            json=batch,
+        )
+        # return=representation → response is the list of rows actually inserted
+        try:
+            inserted += len(resp.json())
+        except ValueError:
+            inserted += len(batch)
 
-    skipped += (len(events) - len(rows))
-    return inserted, skipped
-
-
-# ── Last-sync timestamp helpers (stored in a simple local file) ──────────────
-_STATE_FILE = os.path.join(os.path.dirname(__file__), ".sync_state")
-
-
-def get_last_sync_time() -> datetime | None:
-    try:
-        with open(_STATE_FILE) as f:
-            return datetime.fromisoformat(f.read().strip())
-    except (FileNotFoundError, ValueError):
-        return None
-
-
-def set_last_sync_time(ts: datetime):
-    with open(_STATE_FILE, "w") as f:
-        f.write(ts.astimezone(timezone.utc).isoformat())
+    return {
+        "attempted": len(events),
+        "inserted":  inserted,
+        "skipped":   skipped + (len(rows) - inserted),
+    }

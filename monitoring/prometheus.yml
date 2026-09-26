@@ -3,6 +3,6 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'essl-sync'
+  - job_name: essl-sync
     static_configs:
       - targets: ['essl-sync:5000']

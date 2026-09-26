@@ -2,22 +2,18 @@ name: eSSL Attendance Sync
 
 on:
   schedule:
-    # 11:00 AM IST daily (05:30 UTC)
-    - cron: '30 5 * * *'
-    # 8:00 PM IST daily (14:30 UTC)
-    - cron: '30 14 * * *'
-  workflow_dispatch:      # allows manual trigger from GitHub UI for testing
+    - cron: '30 5 * * *'    # 11:00 AM IST
+    - cron: '30 14 * * *'   # 8:00 PM IST
+  workflow_dispatch:
 
 concurrency:
   group: essl-sync
-  cancel-in-progress: false   # never cancel a run already talking to the device
+  cancel-in-progress: false
 
 jobs:
-  sync-attendance:
-    name: Fetch and sync eSSL attendance
-    runs-on: self-hosted        # MUST be self-hosted (runner inside your LAN)
+  sync:
+    runs-on: self-hosted        # MUST run inside your factory LAN
     timeout-minutes: 10
-
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -25,19 +21,17 @@ jobs:
       ESSL_DEVICE_PORT: ${{ secrets.ESSL_DEVICE_PORT }}
       ESSL_COMM_KEY: ${{ secrets.ESSL_COMM_KEY }}
       ESSL_DEVICE_ID: ${{ secrets.ESSL_DEVICE_ID }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
       FACTORY_TIMEZONE: 'Asia/Kolkata'
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('essl-sync/requirements.txt') }}
@@ -48,32 +42,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Ping device (connectivity pre-check)
+      - name: Ping device
         run: |
-          if ! ping -c 2 -W 3 "$ESSL_DEVICE_IP" > /dev/null 2>&1; then
-            echo "::error::Device $ESSL_DEVICE_IP is unreachable from this runner."
+          if ! ping -c 2 -W 3 "$ESSL_DEVICE_IP" >/dev/null 2>&1; then
+            echo "::error::Device $ESSL_DEVICE_IP unreachable."
             exit 1
           fi
-          echo "Device $ESSL_DEVICE_IP is reachable."
 
-      - name: Run eSSL sync with retry logic
-        id: sync
+      - name: Run sync with retries
         working-directory: essl-sync
         run: |
           set -e
-          MAX_ATTEMPTS=3
-          ATTEMPT=1
-          until python sync.py --once; do
-            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-              echo "::error::Sync failed after $MAX_ATTEMPTS attempts."
-              exit 1
+          for attempt in 1 2 3; do
+            if python sync.py --once; then
+              exit 0
             fi
-            echo "::warning::Attempt $ATTEMPT failed. Retrying in 15s..."
-            ATTEMPT=$((ATTEMPT + 1))
+            echo "::warning::Attempt $attempt failed; retrying in 15s"
             sleep 15
           done
+          echo "::error::All attempts failed"
+          exit 1
 
-      - name: Upload sync log as artifact
+      - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -82,23 +72,10 @@ jobs:
           retention-days: 14
 
       - name: Notify Slack on failure
-        if: failure()
+        if: failure() && env.SLACK_WEBHOOK != ''
         uses: slackapi/slack-github-action@v1.27.0
-        with:
-          payload: |
-            {
-              "text": "🚨 eSSL attendance sync FAILED — run: ${{ github.run_id }} at ${{ github.event.schedule || 'manual trigger' }}. Check the Actions log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Notify Slack on success
-        if: success()
-        uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |
-            {
-              "text": "✅ eSSL attendance sync completed successfully — run: ${{ github.run_id }}."
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+            {"text": "🚨 eSSL sync FAILED — run ${{ github.run_id }}"}

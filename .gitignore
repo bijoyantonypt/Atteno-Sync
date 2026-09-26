@@ -1,9 +1,12 @@
-node_modules/
-dist/
+# essl-sync runtime files
+essl-sync/.env
+essl-sync/.sync_state
+essl-sync/sync.log*
+essl-sync/__pycache__/
+essl-sync/*.pyc
+essl-sync/ssl/
+
+# env everywhere
 .env
 .env.local
-*.log
-supabase/.temp/
-supabase/.branches/
-kiosk/android/app/libs/*.jar
-kiosk/android/app/src/main/jniLibs/
+.env.*.local

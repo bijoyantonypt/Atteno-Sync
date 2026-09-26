@@ -1,0 +1,9 @@
+﻿{
+  "name": "Atteno_Sync Admin",
+  "short_name": "Atteno_Sync",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F9FAFB",
+  "theme_color": "#12355B"
+}
+

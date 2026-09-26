@@ -2,57 +2,20 @@ version: '3.8'
 
 services:
   essl-sync:
-    build:
-      context: ./essl-sync
-      dockerfile: Dockerfile.security
+    build: ./essl-sync
+    env_file: ./essl-sync/.env
     ports:
-      - "5000:5000"
-    environment:
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - ESSL_DEVICE_IP=${ESSL_DEVICE_IP}
-      - ESSL_DEVICE_PORT=${ESSL_DEVICE_PORT}
-      - ESSL_COMM_KEY=${ESSL_COMM_KEY}
-      - SESSION_SECRET=${SESSION_SECRET}
+      - "127.0.0.1:5000:5000"     # localhost only — never 0.0.0.0
     volumes:
-      - ./essl-sync/ssl:/app/ssl
-    networks:
-      - attendance_network
+      - ./essl-sync/sync.log:/app/sync.log
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     read_only: true
-    tmpfs:
-      - /tmp
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  web:
-    build:
-      context: ./web
-      dockerfile: Dockerfile.security
-    ports:
-      - "3000:3000"
-    environment:
-      - VITE_SUPABASE_URL=${SUPABASE_URL}
-      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-    networks:
-      - attendance_network
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    read_only: true
-    tmpfs:
-      - /tmp
+    tmpfs: [/tmp]
+    networks: [attendance_net]
 
 networks:
-  attendance_network:
+  attendance_net:
     driver: bridge
     internal: true
