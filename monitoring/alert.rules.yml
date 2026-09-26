@@ -1,0 +1,29 @@
+groups:
+- name: attendance-alerts
+  rules:
+  - alert: HighErrorRate
+    expr: rate(http_requests_total{http_status=~"5.."}[5m]) > 0.1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High error rate on {{ $labels.endpoint }}"
+      description: "Error rate is {{ $value }} for the last 5 minutes"
+
+  - alert: DeviceDisconnected
+    expr: up{job="essl-sync"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "eSSL device disconnected"
+      description: "The eSSL device is not responding"
+
+  - alert: HighLatency
+    expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High request latency"
+      description: "95th percentile latency is {{ $value }} seconds"
