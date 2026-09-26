@@ -38,6 +38,7 @@ export interface AttendanceEvent {
   was_early: boolean;
   synced_offline: boolean;
   voided: boolean;
+  source: 'kiosk' | 'admin' | 'essl'; 
 }
 
 export interface PayrollRow {

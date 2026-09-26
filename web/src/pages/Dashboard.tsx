@@ -127,7 +127,7 @@ export default function Dashboard({ settings, shifts }: { settings: Settings; sh
                 <td className="p-3 text-base">
                   {r.events.map((ev) => (
                     <div key={ev.id} className="flex items-center gap-2">
-                      <span>{ev.event_type === 'in' ? 'In' : 'Out'} {formatTime(ev.captured_at, tz)}{ev.synced_offline ? ' (offline)' : ''}</span>
+                      <span>{ev.event_type === 'in' ? 'In' : 'Out'} {formatTime(ev.captured_at, tz)}{ev.source === 'essl' ? ' 🖲 eSSL' : ev.synced_offline ? ' (offline)' : ''}</span>
                       <button onClick={() => voidEvent(ev, r.employee.full_name)} className="text-sm text-red-700 underline">
                         remove
                       </button>
