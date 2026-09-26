@@ -3,18 +3,23 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "chmod +x node_modules/.bin/tsc && tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "postinstall": "chmod +x node_modules/.bin/tsc"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
+    "jspdf": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "vite": "^5.0.0"
+    "vite": "^6.4.3"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.0.0"
   }
 }

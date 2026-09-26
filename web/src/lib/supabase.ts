@@ -15,8 +15,6 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 });
 
-export const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
-
 export interface Settings {
   timezone: string;
   late_grace_minutes: number;

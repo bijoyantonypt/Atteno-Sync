@@ -1,5 +1,9 @@
 {
-  "installCommand": "cd web && npm install --include=dev",
-  "buildCommand": "cd web && npm run build",
-  "outputDirectory": "web/dist"
+  "buildCommand": "cd web && npm install && npm run build",
+  "outputDirectory": "web/dist",
+  "devCommand": "vite",
+  "installCommand": "cd web && npm install",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
