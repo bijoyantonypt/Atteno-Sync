@@ -1,0 +1,12 @@
+{
+  "name": "essl-sync",
+  "version": "1.0.0",
+  "description": "Python service that fetches attendance from the eSSL X990 device over Ethernet\r and syncs it into the Atteno-Sync Supabase database.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
