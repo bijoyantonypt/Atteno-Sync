@@ -1,0 +1,104 @@
+name: eSSL Attendance Sync
+
+on:
+  schedule:
+    # 11:00 AM IST daily (05:30 UTC)
+    - cron: '30 5 * * *'
+    # 8:00 PM IST daily (14:30 UTC)
+    - cron: '30 14 * * *'
+  workflow_dispatch:      # allows manual trigger from GitHub UI for testing
+
+concurrency:
+  group: essl-sync
+  cancel-in-progress: false   # never cancel a run already talking to the device
+
+jobs:
+  sync-attendance:
+    name: Fetch and sync eSSL attendance
+    runs-on: self-hosted        # MUST be self-hosted (runner inside your LAN)
+    timeout-minutes: 10
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ESSL_DEVICE_IP: ${{ secrets.ESSL_DEVICE_IP }}
+      ESSL_DEVICE_PORT: ${{ secrets.ESSL_DEVICE_PORT }}
+      ESSL_COMM_KEY: ${{ secrets.ESSL_COMM_KEY }}
+      ESSL_DEVICE_ID: ${{ secrets.ESSL_DEVICE_ID }}
+      FACTORY_TIMEZONE: 'Asia/Kolkata'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('essl-sync/requirements.txt') }}
+
+      - name: Install dependencies
+        working-directory: essl-sync
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ping device (connectivity pre-check)
+        run: |
+          if ! ping -c 2 -W 3 "$ESSL_DEVICE_IP" > /dev/null 2>&1; then
+            echo "::error::Device $ESSL_DEVICE_IP is unreachable from this runner."
+            exit 1
+          fi
+          echo "Device $ESSL_DEVICE_IP is reachable."
+
+      - name: Run eSSL sync with retry logic
+        id: sync
+        working-directory: essl-sync
+        run: |
+          set -e
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+          until python sync.py --once; do
+            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+              echo "::error::Sync failed after $MAX_ATTEMPTS attempts."
+              exit 1
+            fi
+            echo "::warning::Attempt $ATTEMPT failed. Retrying in 15s..."
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep 15
+          done
+
+      - name: Upload sync log as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: essl-sync-log-${{ github.run_id }}
+          path: essl-sync/sync.log
+          retention-days: 14
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "🚨 eSSL attendance sync FAILED — run: ${{ github.run_id }} at ${{ github.event.schedule || 'manual trigger' }}. Check the Actions log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on success
+        if: success()
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "✅ eSSL attendance sync completed successfully — run: ${{ github.run_id }}."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
